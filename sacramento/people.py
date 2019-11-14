@@ -1,10 +1,11 @@
 import collections
 
-from pupa.scrape import Person, Organization
+from pupa.scrape import Person, Organization, Scraper
 from legistar.people import LegistarAPIPersonScraper, LegistarPersonScraper
 
 
-class SacramentoPersonScraper(LegistarAPIPersonScraper):
+
+class SacramentoPersonScraper(LegistarAPIPersonScraper, Scraper):
     BASE_URL = 'http://webapi.legistar.com/v1/sacramento'
     WEB_URL = 'https://sacramento.legistar.com'
     TIMEZONE = "America/Los_Angeles"
@@ -22,15 +23,16 @@ class SacramentoPersonScraper(LegistarAPIPersonScraper):
     def scrape(self):
         body_types = self.body_types()
 
-        city_council, = [body for body in self.bodies()
-                         if body['BodyName'] == 'City Council ']
+        city_councils = [body for body in self.bodies()
+                         if 'City Council' in body['BodyName']]
 
         terms = collections.defaultdict(list)
 
-        for office in self.body_offices(city_council):
+        for city_council in city_councils:
+            for office in self.body_offices(city_council):
 
-            if office['OfficeRecordFullName'] != "Granicus BA":
-                terms[office['OfficeRecordFullName']].append(office)
+                if office['OfficeRecordFullName'] != "Granicus BA":
+                    terms[office['OfficeRecordFullName']].append(office)
 
         members = {}
 
